@@ -97,13 +97,6 @@ int main(void) {
 	int i = 0;
 	uint32_t mailbox = CAN_TX_MAILBOX0;
 
-	void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-		i = -2;
-	}
-
-	void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-		i = -4;
-	}
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -119,7 +112,7 @@ int main(void) {
 		txHeader.TransmitGlobalTime = DISABLE;
 
 		//
-		uint8_t data[5] = { 1U, 2U, 3U, 4U, 5U };
+		uint8_t data[5] = { 'H', 'A', 'L', 'O', 'K' };
 		uint8_t dataResult[5];
 		HAL_StatusTypeDef out;
 		HAL_StatusTypeDef start = HAL_CAN_Start(&hcan1);
@@ -128,16 +121,27 @@ int main(void) {
 			Error_Handler();
 		}
 		while(HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
+//		HAL_CAN_Stop(&hcan1);
+
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, SET);
+
+		uint32_t fill1 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0);
+		uint32_t fill2 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1);
 
 		CAN_RxHeaderTypeDef pHeader2;
 		pHeader2.StdId = 1;
-		txHeader.IDE = CAN_ID_STD;
-		txHeader.RTR = CAN_RTR_DATA;
-		txHeader.DLC = 5;
-		txHeader.TransmitGlobalTime = DISABLE;
+		pHeader2.IDE = CAN_ID_STD;
+		pHeader2.RTR = CAN_RTR_DATA;
+		pHeader2.DLC = 5;
+
 		HAL_StatusTypeDef responseOut;
 		uint32_t CANFifo;
+		if(HAL_CAN_Start(&hcan1) != HAL_OK) {
+			Error_Handler();
+		}
+		while(HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0) == 0 && HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1) == 0) {
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		}
 		if(HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0) >= HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1)) {
 			CANFifo = CAN_RX_FIFO0;
 		} else {
@@ -148,8 +152,7 @@ int main(void) {
 			Error_Handler();
 		}
 		HAL_CAN_StateTypeDef state = HAL_CAN_GetState(&hcan1);
-		uint32_t fill1 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0);
-		uint32_t fill2 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1);
+
 
 		i++;
 		/* USER CODE BEGIN 3 */
@@ -222,7 +225,7 @@ static void MX_CAN1_Init(void) {
 	/* USER CODE END CAN1_Init 1 */
 	hcan1.Instance = CAN1;
 	hcan1.Init.Prescaler = 10;
-	hcan1.Init.Mode = CAN_MODE_LOOPBACK;
+	hcan1.Init.Mode = CAN_MODE_SILENT_LOOPBACK;
 	hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
 	hcan1.Init.TimeSeg1 = CAN_BS1_13TQ;
 	hcan1.Init.TimeSeg2 = CAN_BS1_2TQ;
@@ -236,15 +239,29 @@ static void MX_CAN1_Init(void) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN CAN1_Init 2 */
-	if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING)
-			!= HAL_OK) {
+
+	// Configure Acceptance Filter
+	// Current configuration should accept all IDs
+	/*
+	 * Found Id = 0xXXXXXXXX
+	 * Masked = (0x00000000) & 0xXXXXXXXX = 0x00000000
+	 * Expected = 0x00000000
+	 */
+	CAN_FilterTypeDef filterParams;
+	filterParams.FilterBank = 0; // Does this matter?
+	filterParams.FilterFIFOAssignment = CAN_RX_FIFO0;
+	filterParams.FilterMode = CAN_FILTERMODE_IDMASK;
+	filterParams.FilterScale = CAN_FILTERSCALE_32BIT;
+	filterParams.FilterIdHigh = 0x0000;
+	filterParams.FilterIdLow = 0x0000;
+	filterParams.FilterMaskIdHigh = 0x0000;
+	filterParams.FilterMaskIdLow = 0x0000;
+	filterParams.FilterActivation = CAN_FILTER_ENABLE;
+
+	if(HAL_CAN_ConfigFilter(&hcan1, &filterParams) != HAL_OK) {
 		Error_Handler();
 	}
 
-	if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING)
-			!= HAL_OK) {
-		Error_Handler();
-	}
 	/* USER CODE END CAN1_Init 2 */
 
 }
@@ -319,7 +336,13 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-
+//int __io_putchar(int ch)
+//{
+// uint8_t c[1];
+// c[0] = ch & 0x00FF;
+// HAL_UART_Transmit(&huart2, &*c, 1, 10);
+// return ch;
+//}
 /* USER CODE END 4 */
 
 /**
@@ -329,7 +352,7 @@ static void MX_GPIO_Init(void) {
 void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
-
+//	_write(0, "Error Caught", strlen("Error Caught"));
 	/* USER CODE END Error_Handler_Debug */
 }
 
