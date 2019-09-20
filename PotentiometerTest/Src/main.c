@@ -47,7 +47,7 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-int __io_putchar(int ch)
+int __io_putchar(int ch) //int to char conversion
 {
  uint8_t c[1];
  c[0] = ch & 0x00FF;
@@ -109,16 +109,43 @@ int main(void)
   while (1)
   {
 
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, 100);
-	  uint32_t adcValue;
-  	  adcValue = HAL_ADC_GetValue(&hadc1);
-  	  char adcVal[4] = {0};
-  	  sprintf(adcVal, "%u", adcValue);
-  	  _write(0, (adcVal), 4);
-  	  _write(0, "\n", 1);
-	  HAL_Delay(100);
+	  HAL_ADC_Start(&hadc1); //starts ADC module
+	  HAL_ADC_PollForConversion(&hadc1, 100); //checks to make sure converted value is ready to be retrieved
+	  uint32_t adcValue; //initialize variable
+  	  adcValue = HAL_ADC_GetValue(&hadc1); //retrieves value
 
+  	  //determining raw pot value from ADC
+  	  char adcVal[4] = {0}; //char array of 0s
+  	  sprintf(adcVal, "%u", adcValue); //print voltage value to char array
+  	  _write(0, (adcVal), 4); //writes adcVal to serial output
+  	  _write(0, "\n", 1); //writes in a new line at the end
+
+  	  //determining voltage value from pot value
+	  float voltageValue = adcValue;
+	    	  voltageValue = voltageValue*(3.3/4031.0); //conversion from pot value to voltage value
+	    	  char voltageVal[4] = {0}; //char array creation
+	    	  sprintf(voltageVal, "%2.1f", voltageValue); //print voltage value to char array
+	    	  _write(0, (voltageVal), 4); //writes voltageVal to serial output
+	    	  _write(0, "\n", 1); //writes in a new line
+	    	  HAL_Delay(100); //short delay in retrieving values
+
+	  /* determining lock digit, noob edition */
+	  /* according to datasheet, pot range is 300 degrees
+	   * according to experimental tests, resistance range is between ~0-44 kOhms */
+	  uint8_t LockDigit;
+	  if (0 <= adcValue && adcValue <= 1007) { //dividing 4031 into four approximately even intervals
+		  LockDigit = 1;
+	  } else if (1008 <= adcValue && adcValue <= 2015) {
+		  LockDigit = 2;
+	  } else if (2016 <= adcValue && adcValue <= 3023) {
+		  LockDigit = 3;
+	  } else {
+		  LockDigit = 4;
+	  }
+	  char LockVal[1] = {0};
+	  sprintf(LockVal, "%u", LockDigit);
+	  _write(0, (LockVal), 1); //writes LockVal to serial output
+	  _write(0, "\n", 1); //writes in a new line
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -208,14 +235,14 @@ static void MX_ADC1_Init(void)
   /** Common config 
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4; /*!< ADC asynchronous clock with prescaler division by 4 */
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.NbrOfConversion = 5; //not sure how much this affects function
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -235,9 +262,9 @@ static void MX_ADC1_Init(void)
   }
   /** Configure Regular Channel 
   */
-  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Channel = ADC_CHANNEL_5; //Pin A0 is set to ADC Channel 5 by default
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5; //Important: 47 Cycles was deemed long enough (by experimentation) to actually get a significant sample out of the ADC module
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
