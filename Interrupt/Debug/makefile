@@ -37,8 +37,8 @@ Interrupt.list \
 all: Interrupt.elf secondary-outputs
 
 # Tool invocations
-Interrupt.elf: $(OBJS) $(USER_OBJS) C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\Interrupt\STM32L476RGTX_FLASH.ld
-	arm-none-eabi-gcc -o "Interrupt.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\Interrupt\STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Interrupt.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Interrupt.elf: $(OBJS) $(USER_OBJS) C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\LoopChallengeWeek\Interrupt\STM32L476RGTX_FLASH.ld
+	arm-none-eabi-gcc -o "Interrupt.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\LoopChallengeWeek\Interrupt\STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Interrupt.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

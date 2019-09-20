@@ -47,7 +47,12 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+<<<<<<< HEAD
 int __io_putchar(int ch) //int to char conversion
+=======
+int maxADC = 4031;
+int __io_putchar(int ch)
+>>>>>>> 8c31b757ec0ac0f580cb8df0340d14d724e78f36
 {
  uint8_t c[1];
  c[0] = ch & 0x00FF;
@@ -108,44 +113,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  HAL_ADC_Start(&hadc1); //starts ADC module
-	  HAL_ADC_PollForConversion(&hadc1, 100); //checks to make sure converted value is ready to be retrieved
-	  uint32_t adcValue; //initialize variable
-  	  adcValue = HAL_ADC_GetValue(&hadc1); //retrieves value
-
-  	  //determining raw pot value from ADC
-  	  char adcVal[4] = {0}; //char array of 0s
-  	  sprintf(adcVal, "%u", adcValue); //print voltage value to char array
-  	  _write(0, (adcVal), 4); //writes adcVal to serial output
-  	  _write(0, "\n", 1); //writes in a new line at the end
-
-  	  //determining voltage value from pot value
-	  float voltageValue = adcValue;
-	    	  voltageValue = voltageValue*(3.3/4031.0); //conversion from pot value to voltage value
-	    	  char voltageVal[4] = {0}; //char array creation
-	    	  sprintf(voltageVal, "%2.1f", voltageValue); //print voltage value to char array
-	    	  _write(0, (voltageVal), 4); //writes voltageVal to serial output
-	    	  _write(0, "\n", 1); //writes in a new line
-	    	  HAL_Delay(100); //short delay in retrieving values
-
-	  /* determining lock digit, noob edition */
-	  /* according to datasheet, pot range is 300 degrees
-	   * according to experimental tests, resistance range is between ~0-44 kOhms */
-	  uint8_t LockDigit;
-	  if (0 <= adcValue && adcValue <= 1007) { //dividing 4031 into four approximately even intervals
-		  LockDigit = 1;
-	  } else if (1008 <= adcValue && adcValue <= 2015) {
-		  LockDigit = 2;
-	  } else if (2016 <= adcValue && adcValue <= 3023) {
-		  LockDigit = 3;
-	  } else {
-		  LockDigit = 4;
-	  }
-	  char LockVal[1] = {0};
-	  sprintf(LockVal, "%u", LockDigit);
-	  _write(0, (LockVal), 1); //writes LockVal to serial output
-	  _write(0, "\n", 1); //writes in a new line
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  //wait for conversion process to finish before getting value
+	  uint32_t adcValue;
+	  adcValue = HAL_ADC_GetValue(&hadc1);
+	  int adcDigit = ((float) adcValue / (float) maxADC) * 4;
+	  printf("test");
+	  printf("%d", adcDigit);
+	  char adcVal[4] = {0};
+  	  sprintf(adcVal, "%u", adcValue);
+  	  _write(0, (adcVal), 4);
+  	  _write(0, "\n", 1);
+	  HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
