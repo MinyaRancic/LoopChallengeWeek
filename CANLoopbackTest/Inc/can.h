@@ -14,7 +14,7 @@
 #define CAN_EXT_ID 0
 #define CAN_IS_EXT CAN_ID_STD
 
-uint32_t writeToCAN(CAN_HandleTypeDef *hcan, uint8_t data[], uint8_t dataSize);
-uint32_t readCAN(uint8_t *data, uint32_t dataSize);
+int writeToCAN(CAN_HandleTypeDef *hcan, uint8_t data[], uint8_t dataSize);
+int readCAN(CAN_HandleTypeDef *hcan, uint8_t *data, uint32_t dataSize);
 
 #endif /* CAN_H_ */
