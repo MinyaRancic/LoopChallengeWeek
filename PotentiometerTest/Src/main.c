@@ -47,7 +47,12 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+<<<<<<< HEAD
+int __io_putchar(int ch) //int to char conversion
+=======
+int maxADC = 4031;
 int __io_putchar(int ch)
+>>>>>>> 8c31b757ec0ac0f580cb8df0340d14d724e78f36
 {
  uint8_t c[1];
  c[0] = ch & 0x00FF;
@@ -108,17 +113,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
 	  HAL_ADC_Start(&hadc1);
 	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  //wait for conversion process to finish before getting value
 	  uint32_t adcValue;
-  	  adcValue = HAL_ADC_GetValue(&hadc1);
-  	  char adcVal[4] = {0};
+	  adcValue = HAL_ADC_GetValue(&hadc1);
+	  int adcDigit = ((float) adcValue / (float) maxADC) * 4;
+	  printf("test");
+	  printf("%d", adcDigit);
+	  char adcVal[4] = {0};
   	  sprintf(adcVal, "%u", adcValue);
   	  _write(0, (adcVal), 4);
   	  _write(0, "\n", 1);
 	  HAL_Delay(100);
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -208,14 +215,14 @@ static void MX_ADC1_Init(void)
   /** Common config 
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4; /*!< ADC asynchronous clock with prescaler division by 4 */
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.NbrOfConversion = 5; //not sure how much this affects function
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -235,9 +242,9 @@ static void MX_ADC1_Init(void)
   }
   /** Configure Regular Channel 
   */
-  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Channel = ADC_CHANNEL_5; //Pin A0 is set to ADC Channel 5 by default
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5; //Important: 47 Cycles was deemed long enough (by experimentation) to actually get a significant sample out of the ADC module
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
