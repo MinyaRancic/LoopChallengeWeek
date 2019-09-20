@@ -37,8 +37,8 @@ PotentiometerTest.list \
 all: PotentiometerTest.elf secondary-outputs
 
 # Tool invocations
-PotentiometerTest.elf: $(OBJS) $(USER_OBJS) C:\Users\admin\STM32CubeIDE\LoopChallengeweek\PotentiometerTest\STM32L476RGTX_FLASH.ld
-	arm-none-eabi-gcc -o "PotentiometerTest.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\admin\STM32CubeIDE\LoopChallengeweek\PotentiometerTest\STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PotentiometerTest.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+PotentiometerTest.elf: $(OBJS) $(USER_OBJS) C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\LoopChallengeWeek\PotentiometerTest\STM32L476RGTX_FLASH.ld
+	arm-none-eabi-gcc -o "PotentiometerTest.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\eliza\STM32CubeIDE\workspace_1.0.2\LoopChallengeWeek\PotentiometerTest\STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PotentiometerTest.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

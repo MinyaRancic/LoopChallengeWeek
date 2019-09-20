@@ -47,6 +47,7 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+int maxADC = 4031;
 int __io_putchar(int ch)
 {
  uint8_t c[1];
@@ -111,9 +112,13 @@ int main(void)
 
 	  HAL_ADC_Start(&hadc1);
 	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  //wait for conversion process to finish before getting value
 	  uint32_t adcValue;
-  	  adcValue = HAL_ADC_GetValue(&hadc1);
-  	  char adcVal[4] = {0};
+	  adcValue = HAL_ADC_GetValue(&hadc1);
+	  int adcDigit = ((float) adcValue / (float) maxADC) * 4;
+	  printf("test");
+	  printf("%d", adcDigit);
+	  char adcVal[4] = {0};
   	  sprintf(adcVal, "%u", adcValue);
   	  _write(0, (adcVal), 4);
   	  _write(0, "\n", 1);
