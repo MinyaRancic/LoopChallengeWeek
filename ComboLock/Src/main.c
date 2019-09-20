@@ -45,7 +45,8 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint16_t blinkingTime = 2000;
+uint16_t blinkingTime = 0;
+uint16_t lastTickTime = 0;
 int blinking = 0;
 /* USER CODE END PV */
 
@@ -61,8 +62,11 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_13) {
-		blinking = 1;
-		blinkingTime += 2000;
+		if ((HAL_GetTick - lastTickTime) > 200) {
+			blinking = 1;
+			blinkingTime += 2000;
+			lastTickTime = HAL_GetTick;
+		}
 	}
 }
 /* USER CODE END 0 */
