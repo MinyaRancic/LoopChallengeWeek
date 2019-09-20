@@ -45,7 +45,8 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint16_t blinkingTime = 2000;
+int blinking = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,7 +59,12 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == GPIO_PIN_13) {
+		blinking = 1;
+		blinkingTime += 2000;
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -100,7 +106,16 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  if (blinking) {
+		  for (int i = 0; i <= blinkingTime; i += 250) {
+			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			  HAL_Delay(250);
+		  }
 
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		  blinking = !blinking;
+
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -224,6 +239,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
