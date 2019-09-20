@@ -95,7 +95,6 @@ int main(void) {
 	MX_CAN1_Init();
 	/* USER CODE BEGIN 2 */
 	int i = 0;
-	uint32_t mailbox = CAN_TX_MAILBOX0;
 
 	/* USER CODE END 2 */
 
@@ -104,56 +103,34 @@ int main(void) {
 	while (1) {
 		/* USER CODE END WHILE */
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, RESET);
-		CAN_TxHeaderTypeDef txHeader;
-		txHeader.StdId = 1;
-		txHeader.IDE = CAN_ID_STD;
-		txHeader.RTR = CAN_RTR_DATA;
-		txHeader.DLC = 5;
-		txHeader.TransmitGlobalTime = DISABLE;
 
-		//
-		uint8_t data[5] = { 'H', 'A', 'L', 'O', 'K' };
-		uint8_t dataResult[5];
-		HAL_StatusTypeDef out;
+		uint8_t data[6] = { 'H', 'A', 'L', 'O', 'K', '\n'};
+		uint8_t dataResult[6];
 		HAL_StatusTypeDef start = HAL_CAN_Start(&hcan1);
 
-		if (HAL_CAN_AddTxMessage(&hcan1, &txHeader, data, &mailbox) != HAL_OK) {
+		if(writeToCAN(&hcan1, data, 6) == -1) {
 			Error_Handler();
 		}
-		while(HAL_CAN_IsTxMessagePending(&hcan1, mailbox));
-//		HAL_CAN_Stop(&hcan1);
 
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, SET);
 
-		uint32_t fill1 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0);
-		uint32_t fill2 = HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1);
-
 		CAN_RxHeaderTypeDef pHeader2;
-		pHeader2.StdId = 1;
+		pHeader2.StdId = 15;
 		pHeader2.IDE = CAN_ID_STD;
 		pHeader2.RTR = CAN_RTR_DATA;
-		pHeader2.DLC = 5;
-
-		HAL_StatusTypeDef responseOut;
-		uint32_t CANFifo;
+		pHeader2.DLC = 6;
 		if(HAL_CAN_Start(&hcan1) != HAL_OK) {
 			Error_Handler();
 		}
-		while(HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0) == 0 && HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1) == 0) {
-			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-		}
-		if(HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO0) >= HAL_CAN_GetRxFifoFillLevel(&hcan1, CAN_RX_FIFO1)) {
-			CANFifo = CAN_RX_FIFO0;
-		} else {
-			CANFifo = CAN_RX_FIFO1;
-		}
-		if(HAL_CAN_GetRxMessage(&hcan1, CANFifo, &pHeader2, dataResult) != HAL_OK) {
+
+		if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &pHeader2, dataResult) != HAL_OK) {
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, RESET);
 			Error_Handler();
 		}
 		HAL_CAN_StateTypeDef state = HAL_CAN_GetState(&hcan1);
 
-
+		_write(0, (char*)dataResult, 6);
+		printf("pizza\n");
 		i++;
 		/* USER CODE BEGIN 3 */
 	}
@@ -336,13 +313,13 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-//int __io_putchar(int ch)
-//{
-// uint8_t c[1];
-// c[0] = ch & 0x00FF;
-// HAL_UART_Transmit(&huart2, &*c, 1, 10);
-// return ch;
-//}
+int __io_putchar(int ch)
+{
+ uint8_t c[1];
+ c[0] = ch & 0x00FF;
+ HAL_UART_Transmit(&huart2, &*c, 1, 10);
+ return ch;
+}
 /* USER CODE END 4 */
 
 /**
