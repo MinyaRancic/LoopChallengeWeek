@@ -114,23 +114,13 @@ int main(void) {
 
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, SET);
 
-		CAN_RxHeaderTypeDef pHeader2;
-		pHeader2.StdId = 15;
-		pHeader2.IDE = CAN_ID_STD;
-		pHeader2.RTR = CAN_RTR_DATA;
-		pHeader2.DLC = 6;
-		if(HAL_CAN_Start(&hcan1) != HAL_OK) {
-			Error_Handler();
-		}
-
-		if(HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &pHeader2, dataResult) != HAL_OK) {
+		if(readCAN(&hcan1, dataResult, 6) != -1) {
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, RESET);
 			Error_Handler();
 		}
-		HAL_CAN_StateTypeDef state = HAL_CAN_GetState(&hcan1);
 
-		_write(0, (char*)dataResult, 6);
-		printf("pizza\n");
+//		_write(0, (char*)dataResult, 6);
+		printf((char*)dataResult);
 		i++;
 		/* USER CODE BEGIN 3 */
 	}
