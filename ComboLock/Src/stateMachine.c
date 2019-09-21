@@ -7,6 +7,7 @@
 
 #include "stateMachine.h"
 
+
 enum states getState() {
 	return state;
 }
@@ -19,6 +20,7 @@ void nextState(enum events event) {
 		}
 		if(digitsRead == 4) {
 			state = SEND_MESSAGE;
+			digitsRead = 0;
 		}
 		break;
 	}

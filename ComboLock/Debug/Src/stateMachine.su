@@ -1,2 +1,2 @@
-stateMachine.c:10:13:getState	4	static
-stateMachine.c:14:6:nextState	16	static
+stateMachine.c:11:13:getState	4	static
+stateMachine.c:15:6:nextState	16	static

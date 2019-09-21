@@ -34,7 +34,6 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "can.h"
 #include "stateMachine.h"
-#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
