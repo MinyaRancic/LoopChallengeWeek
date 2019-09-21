@@ -48,6 +48,9 @@ UART_HandleTypeDef huart2;
 uint16_t blinkingTime = 0;
 uint16_t lastTickTime = 0;
 int blinking = 0;
+int maxADC = 4032;
+int adcDigit[4];
+int arrayIndex = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,8 +69,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 			blinking = 1;
 			blinkingTime += 2000;
 			lastTickTime = HAL_GetTick;
+			determineDigit();
 		}
 	}
+}
+
+void determineDigit() {
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 100);
+	  //wait for conversion process to finish before getting value
+	  uint32_t adcValue;
+	  adcValue = HAL_ADC_GetValue(&hadc1);
+	  adcDigit[arrayIndex % 4] = (((float) adcValue / (float) maxADC) * 5);
+	  arrayIndex ++;
 }
 /* USER CODE END 0 */
 
@@ -120,6 +134,8 @@ int main(void)
 		  blinking = !blinking;
 
 	  }
+
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
