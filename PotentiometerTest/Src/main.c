@@ -47,12 +47,8 @@ ADC_HandleTypeDef hadc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-<<<<<<< HEAD
-int __io_putchar(int ch) //int to char conversion
-=======
-int maxADC = 4031;
+int maxADC = 4032;
 int __io_putchar(int ch)
->>>>>>> 8c31b757ec0ac0f580cb8df0340d14d724e78f36
 {
  uint8_t c[1];
  c[0] = ch & 0x00FF;
@@ -118,14 +114,24 @@ int main(void)
 	  //wait for conversion process to finish before getting value
 	  uint32_t adcValue;
 	  adcValue = HAL_ADC_GetValue(&hadc1);
-	  int adcDigit = ((float) adcValue / (float) maxADC) * 4;
-	  printf("test");
-	  printf("%d", adcDigit);
-	  char adcVal[4] = {0};
-  	  sprintf(adcVal, "%u", adcValue);
-  	  _write(0, (adcVal), 4);
-  	  _write(0, "\n", 1);
-	  HAL_Delay(100);
+
+  	  //determining voltage value from pot value
+	  float voltageValue = adcValue;
+	  voltageValue = voltageValue*(3.3/4032.0); //conversion from pot value to voltage value
+	  //char voltageVal[4] = {0}; //char array creation
+	  //sprintf(voltageVal, "%2.1f", voltageValue); //print voltage value to char array
+
+	  //_write(0, (voltageVal), 4); //writes voltageVal to serial output
+	  //_write(0, "\n", 1); //writes in a new line
+
+	  int adcDigit = (((float) adcValue / (float) maxADC) * 4) + 1;
+	  printf("digit: %d \n", adcDigit);
+	  printf("voltage: %2.2f \n", voltageValue);
+	  //char adcVal[4] = {0};
+	  //sprintf(adcVal, "%u", adcValue);
+	  //_write(0, (adcVal), 4);
+	  //_write(0, "\n", 1);
+	  HAL_Delay(200);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
