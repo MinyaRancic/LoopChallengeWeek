@@ -1,0 +1,2 @@
+stateMachine.c:10:13:getState	4	static
+stateMachine.c:14:6:nextState	16	static

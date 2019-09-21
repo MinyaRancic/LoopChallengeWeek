@@ -49,11 +49,9 @@ int writeToCAN(CAN_HandleTypeDef *hcan, uint8_t data[], uint8_t dataSize) {
 	return dataSize;
 }
 
-int readCAN(CAN_HandleTypeDef *hcan, uint8_t *data, uint32_t dataSize) {
-	CAN_RxHeaderTypeDef rxHeader = generateRXHeader(CAN_ID, CAN_EXT_ID,
-									CAN_IS_EXT, CAN_RTR_DATA, dataSize);
+int readCAN(CAN_HandleTypeDef *hcan, uint8_t *data, CAN_RxHeaderTypeDef *rxHeader) {
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, data) != HAL_OK) {
 		return -1;
 	}
-	return dataSize;
+	return rxHeader->DLC;
 }

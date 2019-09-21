@@ -11,13 +11,18 @@
 enum states {
 	READ_DIGIT,
 	SEND_MESSAGE,
-	RECEIVE_MESSAGE
+	RECEIVE_MESSAGE,
+	FINISHED,
 } state;
 
-int digitsRead = 0;
-enum states currentState = READ_DIGIT;
+enum events {
+	DIGIT_READ,
+	CAN_SENT,
+	CAN_RECEIVED,
+};
 
-void nextState();
-
+int digitsRead;
+void nextState(enum events event);
+enum states getState();
 
 #endif /* STATEMACHINE_H_ */

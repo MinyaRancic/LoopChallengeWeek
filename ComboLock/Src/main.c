@@ -33,7 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SECRET_SIZE 8
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -53,8 +53,10 @@ uint16_t blinkingTime = 0;
 uint16_t lastTickTime = 0;
 int blinking = 0;
 int maxADC = 4032;
-int adcDigit[4];
+uint8_t adcDigit[4];
+uint8_t secretMessage[9] = { 0U };
 int arrayIndex = 0;
+uint32_t adcValue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,28 +65,30 @@ static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+void determineDigit(void);
 /* USER CODE BEGIN PFP */
-
+int __io_putchar(int ch) {
+	uint8_t c[1];
+	c[0] = ch & 0x00FF;
+	HAL_UART_Transmit(&huart2, &*c, 1, 10);
+	return ch;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if ((HAL_GetTick - lastTickTime) > 200) {
-		blinking = 1;
-		blinkingTime += 2000;
-		lastTickTime = HAL_GetTick;
+	if (GPIO_Pin == GPIO_PIN_13) {
+		if ((HAL_GetTick() - lastTickTime) > 200 && getState() == READ_DIGIT) {
+			determineDigit();
+			nextState(DIGIT_READ);
+		}
 	}
 }
 
-void determineDigit() {
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, 100);
-	  //wait for conversion process to finish before getting value
-	  uint32_t adcValue;
-	  adcValue = HAL_ADC_GetValue(&hadc1);
-	  adcDigit[arrayIndex % 4] = (((float) adcValue / (float) maxADC) * 5);
-	  arrayIndex ++;
+void determineDigit(void) {
+	adcDigit[arrayIndex % 4] = (((float) adcValue / (float) maxADC) * 5);
+	arrayIndex++;
 }
 /* USER CODE END 0 */
 
@@ -128,6 +132,37 @@ int main(void) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
+		switch (getState()) {
+		case READ_DIGIT: {
+			HAL_StatusTypeDef start = HAL_ADC_Start(&hadc1);
+			HAL_StatusTypeDef poll = HAL_ADC_PollForConversion(&hadc1, 100);
+			adcValue = HAL_ADC_GetValue(&hadc1);
+			printf("%u\n", adcValue);
+			break;
+		}
+
+		case SEND_MESSAGE: {
+			printf("%d, %d, %d, %d\n", adcDigit[0], adcDigit[1], adcDigit[2], adcDigit[3]);
+			if (writeToCAN(&hcan1, adcDigit, 4) != -1) {
+				nextState(CAN_SENT);
+			}
+			break;
+		}
+
+		case RECEIVE_MESSAGE: {
+			CAN_RxHeaderTypeDef result;
+			if (readCAN(&hcan1, secretMessage, &result) == SECRET_SIZE) {
+				printf("%s\n", (char*) secretMessage);
+				nextState(CAN_RECEIVED);
+			}
+			printf("Reading CAN");
+			break;
+		}
+		case FINISHED: {
+			printf("%s\n", (char*) secretMessage);
+			break;
+		}
+		}
 	}
 	/* USER CODE END 3 */
 }
@@ -208,14 +243,14 @@ static void MX_ADC1_Init(void) {
 	/** Common config
 	 */
 	hadc1.Instance = ADC1;
-	hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+	hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
 	hadc1.Init.Resolution = ADC_RESOLUTION_12B;
 	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
 	hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
 	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
 	hadc1.Init.LowPowerAutoWait = DISABLE;
 	hadc1.Init.ContinuousConvMode = DISABLE;
-	hadc1.Init.NbrOfConversion = 1;
+	hadc1.Init.NbrOfConversion = 5; // check
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -235,7 +270,7 @@ static void MX_ADC1_Init(void) {
 	 */
 	sConfig.Channel = ADC_CHANNEL_5;
 	sConfig.Rank = ADC_REGULAR_RANK_1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+	sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
 	sConfig.SingleDiff = ADC_SINGLE_ENDED;
 	sConfig.OffsetNumber = ADC_OFFSET_NONE;
 	sConfig.Offset = 0;
@@ -365,7 +400,7 @@ static void MX_GPIO_Init(void) {
 
 	/*Configure GPIO pin : PA0 */
 	GPIO_InitStruct.Pin = GPIO_PIN_0;
-	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
