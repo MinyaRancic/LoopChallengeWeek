@@ -10,7 +10,7 @@
 
 #include "stm32l4xx_hal.h"
 
-#define CAN_ID 1
+#define CAN_ID 0x123
 #define CAN_EXT_ID 0
 #define CAN_IS_EXT CAN_ID_STD
 

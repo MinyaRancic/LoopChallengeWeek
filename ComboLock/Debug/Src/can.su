@@ -1,3 +1,3 @@
 can.c:10:21:generateTXHeader	56	static
-can.c:27:5:writeToCAN	72	static
+can.c:27:5:writeToCAN	80	static
 can.c:43:5:readCAN	24	static

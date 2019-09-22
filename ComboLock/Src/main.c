@@ -149,6 +149,7 @@ int main(void) {
 		}
 
 		case SEND_MESSAGE: {
+			HAL_CAN_StateTypeDef state = HAL_CAN_GetState(&hcan1);
 			printf("%d, %d, %d, %d\n", adcDigit[0], adcDigit[1], adcDigit[2], adcDigit[3]);
 			if (writeToCAN(&hcan1, adcDigit, 4) != -1) {
 				nextState(CAN_SENT);
@@ -160,8 +161,10 @@ int main(void) {
 
 		case RECEIVE_MESSAGE: {
 			CAN_RxHeaderTypeDef result;
-			if (readCAN(&hcan1, secretMessage, &result) == SECRET_SIZE) {
-				nextState(CAN_RECEIVED);
+			if (readCAN(&hcan1, secretMessage, &result) != -1) {
+				printf("%s\n", (char*)secretMessage);
+				if(result.ExtId == 0x2AAA5)
+					nextState(CAN_RECEIVED);
 			}
 			printf("Reading CAN");
 			break;
@@ -312,7 +315,7 @@ static void MX_CAN1_Init(void) {
 	/* USER CODE END CAN1_Init 1 */
 	hcan1.Instance = CAN1;
 	hcan1.Init.Prescaler = 10;
-	hcan1.Init.Mode = CAN_MODE_LOOPBACK;
+	hcan1.Init.Mode = CAN_MODE_NORMAL;
 	hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
 	hcan1.Init.TimeSeg1 = CAN_BS1_13TQ;
 	hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;

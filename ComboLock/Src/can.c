@@ -35,7 +35,7 @@ int writeToCAN(CAN_HandleTypeDef *hcan, uint8_t *data, uint8_t dataSize) {
 	}
 	int i = 0;
 	while (HAL_CAN_IsTxMessagePending(hcan, mailbox)){
-		i++;
+		HAL_CAN_StateTypeDef state = HAL_CAN_GetState(hcan);
 	}
 	return dataSize;
 }
